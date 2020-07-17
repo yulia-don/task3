@@ -1,3 +1,3 @@
-yandex.ru
-mail.ru
-ru.docs.webix.com
+https://yandex.ru
+https://mail.ru
+https://ru.docs.webix.com
