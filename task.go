@@ -1,16 +1,25 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
-	"net"
+	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
+var url *string
+var result *string
+
+func init() {
+	url = flag.String("url", "C://Users/Стажер/Desktop/task/3/adres.txt", "a string")
+	result = flag.String("result", "C://Users/Стажер/Desktop/task/3/result/", "a string")
+}
 func main() {
-	urls, result := "C://Users/Стажер/Desktop/task/3/adres.txt", "C://Users/Стажер/Desktop/task/3/result/"
-	file, err := os.Open(urls)
+	flag.Parse()
+	file, err := os.Open(*url)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -18,7 +27,7 @@ func main() {
 	defer file.Close()
 
 	var dataUrl []string
-	data := make([]byte, 64)
+	data := make([]byte, 128)
 
 	for {
 		n, err := file.Read(data)
@@ -29,27 +38,19 @@ func main() {
 	}
 
 	for i := 0; i < len(dataUrl); i++ {
-		httpRequest := "GET / HTTP/1.1\n" + "Host: " + dataUrl[i] + "\n\n"
-		
-		conn, err := net.Dial("tcp", dataUrl[i]+":http")
+		resp, err := http.Get("" + dataUrl[i] + "")
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		defer conn.Close()
+		defer resp.Body.Close()
 
-		if _, err = conn.Write([]byte(httpRequest)); err != nil {
-			fmt.Println(err)
-			return
-		}
-		
-		tmp, errr := os.Create(result + dataUrl[i] + ".txt")
+		tmp, errr := os.Create(*result + strconv.Itoa(i) + ".html")
 		if errr != nil {
 			fmt.Println("Unable to create file:", errr)
 			os.Exit(1)
 		}
-		defer file.Close()
-		io.Copy(tmp, conn) 
+		defer tmp.Close()
+		io.Copy(tmp, resp.Body)
 	}
 }
-
